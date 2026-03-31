@@ -1,42 +1,489 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DiToM Screening Analyzer</title>
-    <script src="script.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+        }
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .button-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(236, 72, 153, 0.4);
+        }
+        .group-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .group-a { background: #fee2e2; color: #991b1b; }
+        .group-b { background: #fef3c7; color: #92400e; }
+        .group-c { background: #dcfce7; color: #166534; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f3f4f6; font-weight: bold; }
+        tr:hover { background: #f9fafb; }
+    </style>
 </head>
-<body>
-    <header>
-        <h1>DiToM Screening Analyzer</h1>
-    </header>
-    <main>
-        <section id="data-import">
-            <h2>Import Data</h2>
-            <input type="file" id="file-input" />
-            <button onclick="importData()">Import</button>
-        </section>
-        <section id="analysis">
-            <h2>Analysis</h2>
-            <button onclick="analyzeDiToM2()">Analyze DiToM 2+</button>
-            <button onclick="analyzeDiToM4()">Analyze DiToM 4+</button>
-        </section>
-        <section id="reports">
-            <h2>Individual Reports</h2>
-            <button onclick="generateReports()">Generate Reports</button>
-        </section>
-        <section id="class-overview">
-            <h2>Class Overview</h2>
-            <button onclick="viewClassOverview()">View Overview</button>
-        </section>
-        <section id="comparison">
-            <h2>Comparison Functionality</h2>
-            <button onclick="compareGroups()">Compare Groups</button>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2026 DiToM Screening Analyzer</p>
-    </footer>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <div class="gradient-bg text-white p-8 shadow-lg">
+            <div class="max-w-7xl mx-auto">
+                <h1 class="text-4xl font-bold mb-2">📊 DiToM Screening Analyzer</h1>
+                <p class="text-pink-100">Professionell analys av DiToM 2+ och DiToM 4+ screeningresultat</p>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto p-6">
+            <!-- Tabs -->
+            <div class="flex gap-4 mb-8 border-b-2 overflow-x-auto">
+                <button onclick="switchTab('setup')" id="tab-setup" class="px-6 py-3 font-bold border-b-4 border-pink-500 text-pink-600 whitespace-nowrap">⚙️ Inställningar</button>
+                <button onclick="switchTab('import')" id="tab-import" class="px-6 py-3 font-bold text-gray-600 hover:text-pink-600 whitespace-nowrap">📥 Importera</button>
+                <button onclick="switchTab('individual')" id="tab-individual" class="px-6 py-3 font-bold text-gray-600 hover:text-pink-600 whitespace-nowrap">👤 Individ</button>
+                <button onclick="switchTab('class')" id="tab-class" class="px-6 py-3 font-bold text-gray-600 hover:text-pink-600 whitespace-nowrap">👥 Klass</button>
+                <button onclick="switchTab('comparison')" id="tab-comparison" class="px-6 py-3 font-bold text-gray-600 hover:text-pink-600 whitespace-nowrap">🔍 Jämförelse</button>
+            </div>
+
+            <!-- TAB 1: SETUP -->
+            <div id="tab-setup-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- DiToM Version Selection -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">🎯 Välj DiToM-version</h2>
+                        <div class="space-y-4">
+                            <button onclick="selectVersion('2')" id="btn-version-2" class="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition text-left">
+                                <div class="font-bold text-lg">DiToM 2+</div>
+                                <div class="text-sm text-gray-600">År 2-3 (15 poäng totalt)</div>
+                            </button>
+                            <button onclick="selectVersion('4')" id="btn-version-4" class="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition text-left">
+                                <div class="font-bold text-lg">DiToM 4+</div>
+                                <div class="text-sm text-gray-600">År 4-6+ (16 poäng totalt)</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Threshold Settings -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">🎚️ Gränsvärden</h2>
+                        <p class="text-sm text-gray-600 mb-4">Anpassa för Grupp A/B/C:</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Grupp A - Max poäng:</label>
+                                <input type="number" id="threshold-a" value="5" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Grupp B - Max poäng:</label>
+                                <input type="number" id="threshold-b" value="10" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <button onclick="saveThresholds()" class="button-primary w-full mt-6 py-3 text-white font-bold rounded-lg">💾 Spara</button>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded">
+                    <h3 class="font-bold text-blue-900 mb-2">💡 Instruktioner</h3>
+                    <p class="text-sm text-blue-800">
+                        1. Välj DiToM-version<br>
+                        2. Justera gränsvärden (valfritt)<br>
+                        3. Importera elevdata från Excel<br>
+                        4. Se analyser och rapporter
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 2: IMPORT -->
+            <div id="tab-import-content" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">📥 Importera elevdata</h2>
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
+                        <p class="text-sm font-semibold text-yellow-800">Format: Kopiera från Excel och klistra in</p>
+                    </div>
+
+                    <textarea id="data-input" placeholder="Klistra in: Namn | År | Uppgifter | Total..." class="w-full h-64 p-4 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none font-mono text-sm" style="resize: vertical;"></textarea>
+
+                    <div class="mt-4 flex gap-4 flex-wrap">
+                        <button onclick="importData()" class="button-primary px-8 py-3 text-white font-bold rounded-lg">✅ Importera</button>
+                        <button onclick="clearData()" class="px-8 py-3 bg-gray-200 text-gray-800 font-bold rounded-lg hover:bg-gray-300">🗑️ Rensa</button>
+                    </div>
+                </div>
+
+                <div id="import-status" class="hidden bg-green-50 border-l-4 border-green-500 p-6 rounded">
+                    <p id="import-message" class="text-green-800"></p>
+                </div>
+            </div>
+
+            <!-- TAB 3: INDIVIDUAL REPORTS -->
+            <div id="tab-individual-content" class="hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">👤 Individuella rapporter</h2>
+                
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <label class="block text-sm font-semibold text-gray-700 mb-4">Välj elev:</label>
+                    <select id="student-select" onchange="showStudentReport()" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none mb-8">
+                        <option value="">-- Välj elev --</option>
+                    </select>
+
+                    <div id="student-report" class="hidden">
+                        <div id="report-content"></div>
+                        <button onclick="downloadPDF()" class="button-primary mt-8 px-8 py-3 text-white font-bold rounded-lg">📥 Ladda ner PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: CLASS OVERVIEW -->
+            <div id="tab-class-content" class="hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">👥 Klassöversikt</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="text-4xl font-bold text-red-600" id="count-a">0</div>
+                        <div class="text-sm text-gray-600 mt-2">Grupp A</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="text-4xl font-bold text-yellow-600" id="count-b">0</div>
+                        <div class="text-sm text-gray-600 mt-2">Grupp B</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="text-4xl font-bold text-green-600" id="count-c">0</div>
+                        <div class="text-sm text-gray-600 mt-2">Grupp C</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">✅ Klassens styrkor</h3>
+                        <ul id="class-strengths" class="space-y-2"></ul>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 Klassens utmaningar</h3>
+                        <ul id="class-challenges" class="space-y-2"></ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">📊 Alla elever</h3>
+                    <div class="overflow-x-auto">
+                        <table id="class-table">
+                            <thead>
+                                <tr>
+                                    <th>Namn</th>
+                                    <th>År</th>
+                                    <th>Totalt</th>
+                                    <th>Grupp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="class-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: COMPARISON -->
+            <div id="tab-comparison-content" class="hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">🔍 Jämförelse & Stödinsatser</h2>
+                
+                <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">⚠️ Högsta behov av stöd per uppgift</h3>
+                    <div id="needs-support" class="space-y-6"></div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">📋 Detaljerad jämförelse</h3>
+                    <div class="overflow-x-auto">
+                        <table id="comparison-table">
+                            <thead>
+                                <tr id="comparison-header"></tr>
+                            </thead>
+                            <tbody id="comparison-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            version: null,
+            students: [],
+            thresholds: { a: 5, b: 10 },
+            currentStudent: null
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('[id^="tab-"][id$="-content"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tab}-content`).classList.remove('hidden');
+            
+            document.querySelectorAll('button[id^="tab-"]').forEach(el => {
+                el.classList.remove('border-b-4', 'border-pink-500', 'text-pink-600');
+                el.classList.add('text-gray-600');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('border-b-4', 'border-pink-500', 'text-pink-600');
+        }
+
+        function selectVersion(version) {
+            state.version = version;
+            document.getElementById('btn-version-2').classList.remove('border-pink-500', 'bg-pink-50');
+            document.getElementById('btn-version-4').classList.remove('border-pink-500', 'bg-pink-50');
+            document.getElementById(`btn-version-${version}`).classList.add('border-pink-500', 'bg-pink-50');
+        }
+
+        function saveThresholds() {
+            const a = parseInt(document.getElementById('threshold-a').value);
+            const b = parseInt(document.getElementById('threshold-b').value);
+            
+            if (a >= b) {
+                alert('Grupp A max måste vara mindre än Grupp B max!');
+                return;
+            }
+            
+            state.thresholds = { a, b };
+            alert('✅ Gränsvärden sparade!');
+            localStorage.setItem('ditom_thresholds', JSON.stringify(state.thresholds));
+        }
+
+        function importData() {
+            if (!state.version) {
+                alert('Välj DiToM-version först!');
+                return;
+            }
+
+            const input = document.getElementById('data-input').value.trim();
+            if (!input) {
+                alert('Klistra in data först!');
+                return;
+            }
+
+            const lines = input.split('\n').map(line => line.trim()).filter(line => line);
+            state.students = [];
+
+            lines.forEach((line, idx) => {
+                const parts = line.split('\t');
+                if (parts.length < 3) return;
+
+                const name = parts[0];
+                const year = parts[1];
+                const scores = parts.slice(2).map(p => {
+                    const val = parseFloat(p);
+                    return isNaN(val) ? 0 : val;
+                });
+
+                const total = scores.reduce((a, b) => a + b, 0);
+                const group = getGroup(total);
+
+                state.students.push({ name, year, scores, total, group });
+            });
+
+            localStorage.setItem('ditom_students', JSON.stringify(state.students));
+            
+            document.getElementById('import-status').classList.remove('hidden');
+            document.getElementById('import-message').textContent = `✅ ${state.students.length} elever importerade!`;
+            
+            updateAllViews();
+        }
+
+        function getGroup(total) {
+            if (total <= state.thresholds.a) return 'A';
+            if (total <= state.thresholds.b) return 'B';
+            return 'C';
+        }
+
+        function updateAllViews() {
+            updateIndividualSelect();
+            updateClassOverview();
+            updateComparison();
+        }
+
+        function updateIndividualSelect() {
+            const select = document.getElementById('student-select');
+            select.innerHTML = '<option value="">-- Välj elev --</option>';
+            state.students.forEach((s, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${s.name} (År ${s.year}) - ${s.total} poäng`;
+                select.appendChild(option);
+            });
+        }
+
+        function showStudentReport() {
+            const idx = document.getElementById('student-select').value;
+            if (!idx) {
+                document.getElementById('student-report').classList.add('hidden');
+                return;
+            }
+
+            const student = state.students[idx];
+            state.currentStudent = student;
+            
+            const groupClass = `group-${student.group}`;
+            const groupText = student.group === 'A' ? 'Omfattande svårigheter' : 
+                            student.group === 'B' ? 'Specifika områden' : 'Inga direkta tecken';
+
+            let html = `
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">${student.name}</h3>
+                    <div class="flex gap-4 mb-4">
+                        <span class="text-gray-600">År: ${student.year}</span>
+                        <span class="group-badge ${groupClass}">Grupp ${student.group}</span>
+                    </div>
+                    <p class="text-gray-600">${groupText}</p>
+                </div>
+
+                <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-6 mb-8">
+                    <div class="text-4xl font-bold text-pink-600">${student.total}</div>
+                    <div class="text-gray-600">av ${state.version === '2' ? '15' : '16'} poäng möjliga</div>
+                </div>
+
+                <h4 class="text-xl font-bold text-gray-800 mb-4">📊 Resultat per uppgift</h4>
+                <div class="grid grid-cols-2 gap-4 mb-8" id="student-scores"></div>
+            `;
+
+            document.getElementById('report-content').innerHTML = html;
+            document.getElementById('student-report').classList.remove('hidden');
+
+            const scoresDiv = document.getElementById('student-scores');
+            student.scores.forEach((score, idx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg p-4 border-l-4 ' + (score === 1 ? 'border-green-500 bg-green-50' : score === 0.5 ? 'border-yellow-500 bg-yellow-50' : 'border-red-500 bg-red-50');
+                card.innerHTML = `
+                    <div class="font-bold text-gray-800">Uppg ${idx + 1}</div>
+                    <div class="text-2xl font-bold">${score}</div>
+                `;
+                scoresDiv.appendChild(card);
+            });
+        }
+
+        function updateClassOverview() {
+            const a = state.students.filter(s => s.group === 'A').length;
+            const b = state.students.filter(s => s.group === 'B').length;
+            const c = state.students.filter(s => s.group === 'C').length;
+
+            document.getElementById('count-a').textContent = a;
+            document.getElementById('count-b').textContent = b;
+            document.getElementById('count-c').textContent = c;
+
+            const avgScores = [];
+            const numTasks = state.version === '2' ? 15 : 16;
+            
+            for (let i = 0; i < numTasks; i++) {
+                const scores = state.students.map(s => s.scores[i] || 0);
+                const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+                avgScores.push({ task: i + 1, avg });
+            }
+
+            const strengths = avgScores.filter(s => s.avg > 0.7).sort((a, b) => b.avg - a.avg);
+            const challenges = avgScores.filter(s => s.avg < 0.5).sort((a, b) => a.avg - b.avg);
+
+            document.getElementById('class-strengths').innerHTML = strengths.map(s => 
+                `<li class="text-sm text-gray-700 p-3 bg-green-50 rounded border-l-4 border-green-500">Uppgift ${s.task}: ${(s.avg * 100).toFixed(0)}%</li>`
+            ).join('') || '<li class="text-gray-500">Ingen data ännu</li>';
+
+            document.getElementById('class-challenges').innerHTML = challenges.map(c => 
+                `<li class="text-sm text-gray-700 p-3 bg-red-50 rounded border-l-4 border-red-500">Uppgift ${c.task}: ${(c.avg * 100).toFixed(0)}%</li>`
+            ).join('') || '<li class="text-gray-500">Ingen data ännu</li>';
+
+            const tbody = document.getElementById('class-tbody');
+            tbody.innerHTML = state.students.map(s => `
+                <tr>
+                    <td>${s.name}</td>
+                    <td>${s.year}</td>
+                    <td class="font-bold">${s.total}</td>
+                    <td><span class="group-badge group-${s.group}">Grupp ${s.group}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateComparison() {
+            const needsDiv = document.getElementById('needs-support');
+            const numTasks = state.version === '2' ? 15 : 16;
+            let html = '';
+
+            for (let i = 0; i < numTasks; i++) {
+                const sorted = state.students
+                    .map(s => ({ name: s.name, score: s.scores[i] || 0 }))
+                    .sort((a, b) => a.score - b.score)
+                    .slice(0, 3);
+
+                html += `
+                    <div class="border-l-4 border-orange-500 bg-orange-50 p-4 rounded">
+                        <div class="font-bold text-gray-800">Uppgift ${i + 1}</div>
+                        <div class="text-sm text-gray-700 mt-2">
+                            ${sorted.map(s => `<div>• ${s.name}: ${s.score} poäng</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            needsDiv.innerHTML = html || '<p class="text-gray-500">Ingen data ännu</p>';
+
+            const header = document.getElementById('comparison-header');
+            header.innerHTML = '<th>Namn</th>' + Array.from({length: numTasks}, (_, i) => `<th>U${i + 1}</th>`).join('');
+
+            const tbody = document.getElementById('comparison-tbody');
+            tbody.innerHTML = state.students.map(s => 
+                `<tr><td class="font-bold">${s.name}</td>${s.scores.map(sc => `<td class="text-center font-bold ${sc === 1 ? 'bg-green-100' : sc === 0.5 ? 'bg-yellow-100' : 'bg-red-100'}">${sc}</td>`).join('')}</tr>`
+            ).join('');
+        }
+
+        function downloadPDF() {
+            if (!state.currentStudent) {
+                alert('Välj en elev först!');
+                return;
+            }
+
+            const element = document.getElementById('report-content');
+            const opt = {
+                margin: 10,
+                filename: `DiToM_${state.currentStudent.name}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function clearData() {
+            if (confirm('Radera all data?')) {
+                document.getElementById('data-input').value = '';
+                state.students = [];
+                localStorage.removeItem('ditom_students');
+                updateAllViews();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('ditom_thresholds');
+            if (saved) state.thresholds = JSON.parse(saved);
+
+            const students = localStorage.getItem('ditom_students');
+            if (students) {
+                state.students = JSON.parse(students);
+                if (state.students.length > 0) {
+                    state.version = state.students[0].scores.length === 15 ? '2' : '4';
+                    selectVersion(state.version);
+                    updateAllViews();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
