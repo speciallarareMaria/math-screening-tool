@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiToM Screening Analyzer</title>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>DiToM Screening Analyzer</h1>
+    </header>
+    <main>
+        <section id="data-import">
+            <h2>Import Data</h2>
+            <input type="file" id="file-input" />
+            <button onclick="importData()">Import</button>
+        </section>
+        <section id="analysis">
+            <h2>Analysis</h2>
+            <button onclick="analyzeDiToM2()">Analyze DiToM 2+</button>
+            <button onclick="analyzeDiToM4()">Analyze DiToM 4+</button>
+        </section>
+        <section id="reports">
+            <h2>Individual Reports</h2>
+            <button onclick="generateReports()">Generate Reports</button>
+        </section>
+        <section id="class-overview">
+            <h2>Class Overview</h2>
+            <button onclick="viewClassOverview()">View Overview</button>
+        </section>
+        <section id="comparison">
+            <h2>Comparison Functionality</h2>
+            <button onclick="compareGroups()">Compare Groups</button>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DiToM Screening Analyzer</p>
+    </footer>
+</body>
+</html>
