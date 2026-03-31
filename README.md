@@ -152,7 +152,7 @@ Denna tool är utvecklad för svenska lärare som använder DiToM-screeningen.
 
 ## 📄 Licens
 
-Denna tool är öppen för alla lärare att använda, modifiera och dela.
+Detta verktyg är öppet för alla lärare att använda, modifiera och dela.
 
 ---
 
