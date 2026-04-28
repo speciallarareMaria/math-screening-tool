@@ -1,12 +1,12 @@
-# DiToM Screening Analys
+# Screening Analys
 
-🎯 **Professionell analysverktyg för DiToM 2+ och DiToM 4+ screeningresultat**
+🎯 **Professionell analysverktyg för  2+ och 4+ screeningresultat**
 
 En webbaserad lösning för lärare som vill analysera elevernas matematiska nivå, få personliga rapporter och klassöversikter.
 
 ## ✨ Funktioner
 
-- ✅ **Två DiToM-versioner**: Stöd för både DiToM 2+ (År 2-3) och DiToM 4+ (År 4-6+)
+- ✅ **Två versioner**: Stöd för både 2+ (År 2-3) och 4+ (År 4-6+)
 - ✅ **Anpassningsbara gränsvärden**: Justera Grupp A/B/C-klassificering efter dina behov
 - ✅ **Copy-paste import**: Enkelt att importera data direkt från Excel
 - ✅ **Personliga elevrapporter**: Detaljerade analyser per elev
