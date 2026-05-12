@@ -13,6 +13,7 @@ En webbaserad lösning för lärare som vill analysera elevernas matematiska niv
 - ✅ **Klassöversikt**: Se klassens styrkor och utmaningar
 - ✅ **Jämförelser**: Identifiera elever med högsta behov av stöd i varje område
 - ✅ **PDF-export**: Ladda ner personliga rapporter
+- ✅ **Kombinerad screening (MVP)**: Slå samman flera bedömningar med standardiserade och viktade poäng
 - ✅ **Sessionssparing**: Dina data sparas lokalt i webbläsaren
 - ✅ **Offline-funktion**: Fungerar helt utan internetanslutning
 
@@ -60,6 +61,12 @@ En webbaserad lösning för lärare som vill analysera elevernas matematiska niv
 - Identifiera vilka elever som behöver mest stöd per uppgift
 - Se vilka områden som behöver fokus för varje elev
 
+**Kombinerad screening** (fliken "Kombinerad"):
+- Importera flera bedömningar per elev (TSV/CSV)
+- Beräkna kombinerad screening med standardisering + vikter
+- Se risknivå (hög/mellan/låg), trend över tid och rekommendation
+- Ladda ner PDF för elevrapport eller klassöversikt
+
 ## 📊 Datformat
 
 ### För DiToM 2+ (15 uppgifter):
@@ -80,6 +87,19 @@ Maria	5	0.5	1	1	1	...	0.5	11
 - Använd **Tab-tecken** för att separera kolumner (auto när du kopierar från Excel)
 - **Total poäng** räknas automatiskt
 - Använd **0**, **0.5** eller **1** för poäng
+
+### För kombinerad screening (MVP):
+```
+Namn	År	Screening	Råpoäng	Maxpoäng	Datum (valfritt)
+Sara Andersson	3	DiToM 2+	11	15	2026-05-10
+Sara Andersson	3	Taluppfattning	18	25	2026-05-18
+Erik Svensson	4	DiToM 4+	12	16	2026-05-10
+```
+
+Beräkning:
+- Standardiserad delpoäng = `Råpoäng / Maxpoäng`
+- Kombinerad screening = viktat medel av standardiserade delpoäng i procent
+- Risknivåer styrs av trösklar i regelmotorn
 
 ##  Grupp A/B/C Klassificering
 
@@ -104,6 +124,7 @@ Maria	5	0.5	1	1	1	...	0.5	11
 - ✅ **Ingen data lagras online**
 - ✅ **Du har full kontroll** över dina elevdata
 - ✅ **GDPR-kompatibel** (data lämnar aldrig din maskin)
+- ✅ **Pseudonymiserat elev-ID** används i den kombinerade översikten
 
 ## 🔄 Sessionssparing
 
@@ -114,6 +135,7 @@ Maria	5	0.5	1	1	1	...	0.5	11
 ## 📥 Export
 
 - **PDF**: Ladda ner personliga elevrapporter
+- **PDF kombinerad**: Ladda ner elevrapport eller klassöversikt för kombinerad screening
 - **Klassöversikt**: Visa all klassdata i tabellformat
 - **Jämförelser**: Se övergripande mönster
 
