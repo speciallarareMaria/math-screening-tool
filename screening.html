@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matematisk Screening - Nivåbedömning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+        }
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ec4899 0%, #a855f7 100%);
+            transition: width 0.3s ease;
+        }
+        .button-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(236, 72, 153, 0.4);
+        }
+        .answer-btn {
+            transition: all 0.2s;
+        }
+        .answer-btn.selected {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+        .answer-btn:not(.selected):hover {
+            background: #f3e8ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Start-skärm -->
+        <div id="startScreen" class="min-h-screen gradient-bg flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+                <div class="text-center mb-8">
+                    <div class="text-5xl mb-4">📊</div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Matematisk Screening</h1>
+                    <p class="text-gray-600">Nivåbedömning för personlig läringanpassning</p>
+                </div>
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Ditt namn:</label>
+                        <input type="text" id="studentName" placeholder="Skriv ditt namn" 
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Årskurs:</label>
+                        <select id="gradeLevel" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-pink-500">
+                            <option value="">Välj årskurs</option>
+                            <option value="1">Årskurs 1</option>
+                            <option value="2">Årskurs 2</option>
+                            <option value="3">Årskurs 3</option>
+                            <option value="4">Årskurs 4</option>
+                            <option value="5">Årskurs 5</option>
+                            <option value="6">Årskurs 6</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="startScreening()" 
+                    class="button-primary w-full py-3 text-white font-bold rounded-lg">
+                    Starta screening →
+                </button>
+            </div>
+        </div>
+
+        <!-- Screening-skärm -->
+        <div id="screeningScreen" class="hidden min-h-screen bg-gray-50 p-4">
+            <div class="max-w-2xl mx-auto py-8">
+                <!-- Rubrik -->
+                <div class="mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Fråga <span id="currentQuestion">1</span> av <span id="totalQuestions">10</span></p>
+                            <h2 class="text-2xl font-bold text-gray-800 mt-2" id="questionText"></h2>
+                        </div>
+                        <span class="text-3xl" id="questionIcon">🤔</span>
+                    </div>
+                    
+                    <!-- Progress bar -->
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Svarsalternativ -->
+                <div class="grid grid-cols-1 gap-3 mb-8" id="answersContainer"></div>
+
+                <!-- Kontrollknappar -->
+                <div class="flex gap-4 justify-between">
+                    <button onclick="previousQuestion()" 
+                        class="px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition"
+                        id="prevBtn">
+                        ← Föregående
+                    </button>
+                    
+                    <button onclick="nextQuestion()" 
+                        class="button-primary px-6 py-3 text-white font-semibold rounded-lg"
+                        id="nextBtn">
+                        Nästa →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultat-skärm -->
+        <div id="resultsScreen" class="hidden min-h-screen bg-gray-50 p-4">
+            <div class="max-w-2xl mx-auto py-8">
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+                    <!-- Resultat header -->
+                    <div class="text-center mb-8">
+                        <div class="text-6xl mb-4" id="resultIcon">🎉</div>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2">Screening slutförd!</h1>
+                        <p class="text-lg text-gray-600" id="studentNameResult"></p>
+                    </div>
+
+                    <!-- Nivå-kort -->
+                    <div class="gradient-bg rounded-xl p-8 text-white text-center mb-8">
+                        <p class="text-sm font-semibold mb-2 opacity-90">Din matematiska nivå</p>
+                        <h2 class="text-4xl font-bold mb-2" id="levelName">Nivå A</h2>
+                        <p class="text-sm opacity-90" id="levelDescription">Du är på väg!</p>
+                    </div>
+
+                    <!-- Poäng -->
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="bg-blue-50 rounded-lg p-4 text-center">
+                            <p class="text-sm text-gray-600 mb-1">Totalt poäng</p>
+                            <p class="text-3xl font-bold text-blue-600" id="totalScore">0/0</p>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4 text-center">
+                            <p class="text-sm text-gray-600 mb-1">Procent korrekt</p>
+                            <p class="text-3xl font-bold text-purple-600" id="percentCorrect">0%</p>
+                        </div>
+                        <div class="bg-pink-50 rounded-lg p-4 text-center">
+                            <p class="text-sm text-gray-600 mb-1">Tid använd</p>
+                            <p class="text-3xl font-bold text-pink-600" id="timeUsed">0s</p>
+                        </div>
+                    </div>
+
+                    <!-- Styrkor och utvecklingsområden -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">📈 Dina styrkor:</h3>
+                        <div class="space-y-2" id="strengthsList"></div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 Utvecklingsområden:</h3>
+                        <div class="space-y-2" id="areasForDevelopment"></div>
+                    </div>
+
+                    <!-- Rekommendationer -->
+                    <div class="bg-blue-50 rounded-lg p-6 mb-8">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">💡 Rekommenderade övningar:</h3>
+                        <ul class="space-y-2" id="recommendations"></ul>
+                    </div>
+                </div>
+
+                <!-- Kontrollknappar -->
+                <div class="flex gap-4 justify-center">
+                    <button onclick="downloadResults()" 
+                        class="px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">
+                        📥 Ladda ner resultat
+                    </button>
+                    <button onclick="restartScreening()" 
+                        class="button-primary px-6 py-3 text-white font-semibold rounded-lg">
+                        🔄 Starta om screening
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DATA & STATE =====
+        const screeningData = {
+            name: '',
+            grade: '',
+            startTime: 0,
+            currentQuestion: 0,
+            answers: [],
+            score: 0
+        };
+
+        // Screening-frågor (PLACEHOLDER - lätt att uppdatera)
+        const questions = [
+            {
+                id: 1,
+                text: "Vad är 5 + 3?",
+                icon: "➕",
+                category: "addition",
+                answers: [
+                    { text: "7", correct: false },
+                    { text: "8", correct: true },
+                    { text: "9", correct: false },
+                    { text: "10", correct: false }
+                ]
+            },
+            {
+                id: 2,
+                text: "Vad är 12 - 4?",
+                icon: "➖",
+                category: "subtraction",
+                answers: [
+                    { text: "6", correct: false },
+                    { text: "7", correct: false },
+                    { text: "8", correct: true },
+                    { text: "16", correct: false }
+                ]
+            },
+            {
+                id: 3,
+                text: "Vad är 3 × 4?",
+                icon: "✖️",
+                category: "multiplication",
+                answers: [
+                    { text: "10", correct: false },
+                    { text: "11", correct: false },
+                    { text: "12", correct: true },
+                    { text: "13", correct: false }
+                ]
+            },
+            {
+                id: 4,
+                text: "Vad är 20 ÷ 5?",
+                icon: "➗",
+                category: "division",
+                answers: [
+                    { text: "3", correct: false },
+                    { text: "4", correct: true },
+                    { text: "5", correct: false },
+                    { text: "6", correct: false }
+                ]
+            },
+            {
+                id: 5,
+                text: "Vilket tal är störst?",
+                icon: "📊",
+                category: "comparison",
+                answers: [
+                    { text: "345", correct: false },
+                    { text: "543", correct: true },
+                    { text: "435", correct: false },
+                    { text: "354", correct: false }
+                ]
+            },
+            {
+                id: 6,
+                text: "Vad är hälften av 16?",
+                icon: "➗",
+                category: "fractions",
+                answers: [
+                    { text: "6", correct: false },
+                    { text: "7", correct: false },
+                    { text: "8", correct: true },
+                    { text: "9", correct: false }
+                ]
+            },
+            {
+                id: 7,
+                text: "Hur mycket är 100 cm i meter?",
+                icon: "📏",
+                category: "measurement",
+                answers: [
+                    { text: "0,5 m", correct: false },
+                    { text: "1 m", correct: true },
+                    { text: "10 m", correct: false },
+                    { text: "100 m", correct: false }
+                ]
+            },
+            {
+                id: 8,
+                text: "Vilket är udda tal?",
+                icon: "🔢",
+                category: "numbers",
+                answers: [
+                    { text: "2", correct: false },
+                    { text: "4", correct: false },
+                    { text: "5", correct: true },
+                    { text: "8", correct: false }
+                ]
+            },
+            {
+                id: 9,
+                text: "Vad är 25 + 25?",
+                icon: "➕",
+                category: "addition",
+                answers: [
+                    { text: "40", correct: false },
+                    { text: "45", correct: false },
+                    { text: "50", correct: true },
+                    { text: "55", correct: false }
+                ]
+            },
+            {
+                id: 10,
+                text: "Vad är 7 × 8?",
+                icon: "✖️",
+                category: "multiplication",
+                answers: [
+                    { text: "54", correct: false },
+                    { text: "56", correct: true },
+                    { text: "58", correct: false },
+                    { text: "60", correct: false }
+                ]
+            }
+        ];
+
+        // Nivå-klassificering
+        const levels = {
+            A: { min: 0, max: 40, name: "Nivå A - Början", emoji: "🌱", description: "Du utvecklas! Fokusera på grundläggande räkneoperationer." },
+            B: { min: 40, max: 60, name: "Nivå B - Utveckling", emoji: "🌿", description: "Bra framsteg! Du är på rätt väg." },
+            C: { min: 60, max: 80, name: "Nivå C - Solid", emoji: "🌳", description: "Mycket bra! Du behärskar de flesta koncepten." },
+            D: { min: 80, max: 100, name: "Nivå D - Avancerad", emoji: "🚀", description: "Utmärkt! Du är redo för utmaningar." }
+        };
+
+        // ===== FUNKTIONER =====
+
+        function startScreening() {
+            const name = document.getElementById('studentName').value.trim();
+            const grade = document.getElementById('gradeLevel').value;
+
+            if (!name || !grade) {
+                alert('Vänligen fyll i alla fält!');
+                return;
+            }
+
+            screeningData.name = name;
+            screeningData.grade = grade;
+            screeningData.startTime = Date.now();
+            screeningData.answers = new Array(questions.length).fill(null);
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('screeningScreen').classList.remove('hidden');
+            document.getElementById('totalQuestions').textContent = questions.length;
+
+            showQuestion(0);
+        }
+
+        function showQuestion(index) {
+            const question = questions[index];
+            screeningData.currentQuestion = index;
+
+            // Uppdatera rubrik
+            document.getElementById('currentQuestion').textContent = index + 1;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('questionIcon').textContent = question.icon;
+
+            // Progress bar
+            const progress = ((index + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Rendera svarsalternativ
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+
+            question.answers.forEach((answer, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn w-full p-4 border-2 border-gray-300 rounded-lg font-semibold text-left text-gray-800';
+                btn.textContent = answer.text;
+                btn.onclick = () => selectAnswer(idx, answer.correct);
+
+                if (screeningData.answers[index] === idx) {
+                    btn.classList.add('selected');
+                }
+
+                answersContainer.appendChild(btn);
+            });
+
+            // Uppdatera knappar
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('prevBtn').style.opacity = index === 0 ? '0.5' : '1';
+
+            const isLastQuestion = index === questions.length - 1;
+            document.getElementById('nextBtn').textContent = isLastQuestion ? '✓ Avsluta screening' : 'Nästa →';
+        }
+
+        function selectAnswer(answerIndex, isCorrect) {
+            const question = questions[screeningData.currentQuestion];
+            screeningData.answers[screeningData.currentQuestion] = answerIndex;
+
+            if (isCorrect) {
+                screeningData.score++;
+            }
+
+            // Visuell feedback
+            document.querySelectorAll('.answer-btn').forEach((btn, idx) => {
+                if (idx === answerIndex) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        function nextQuestion() {
+            if (screeningData.answers[screeningData.currentQuestion] === null) {
+                alert('Vänligen välj ett svar!');
+                return;
+            }
+
+            if (screeningData.currentQuestion === questions.length - 1) {
+                showResults();
+            } else {
+                showQuestion(screeningData.currentQuestion + 1);
+            }
+        }
+
+        function previousQuestion() {
+            if (screeningData.currentQuestion > 0) {
+                showQuestion(screeningData.currentQuestion - 1);
+            }
+        }
+
+        function showResults() {
+            document.getElementById('screeningScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
+
+            const percentage = Math.round((screeningData.score / questions.length) * 100);
+            const timeUsed = Math.round((Date.now() - screeningData.startTime) / 1000);
+
+            // Bestäm nivå
+            let level = 'A';
+            for (const [key, value] of Object.entries(levels)) {
+                if (percentage >= value.min && percentage < value.max) {
+                    level = key;
+                    break;
+                }
+            }
+
+            const levelData = levels[level];
+
+            // Fylls resultat
+            document.getElementById('studentNameResult').textContent = `${screeningData.name}, Årskurs ${screeningData.grade}`;
+            document.getElementById('resultIcon').textContent = levelData.emoji;
+            document.getElementById('levelName').textContent = levelData.name;
+            document.getElementById('levelDescription').textContent = levelData.description;
+            document.getElementById('totalScore').textContent = `${screeningData.score}/${questions.length}`;
+            document.getElementById('percentCorrect').textContent = `${percentage}%`;
+            document.getElementById('timeUsed').textContent = `${timeUsed}s`;
+
+            // Analyser kategorier
+            const categoryResults = analyzeByCategory();
+            renderStrengthsAndAreas(categoryResults);
+
+            // Rekommendationer
+            renderRecommendations(categoryResults, level);
+        }
+
+        function analyzeByCategory() {
+            const categories = {};
+
+            questions.forEach((question, idx) => {
+                const isCorrect = screeningData.answers[idx] !== null && 
+                    question.answers[screeningData.answers[idx]].correct;
+
+                if (!categories[question.category]) {
+                    categories[question.category] = { correct: 0, total: 0 };
+                }
+
+                categories[question.category].total++;
+                if (isCorrect) {
+                    categories[question.category].correct++;
+                }
+            });
+
+            return categories;
+        }
+
+        function renderStrengthsAndAreas(categoryResults) {
+            const strengthsList = document.getElementById('strengthsList');
+            const areasForDevelopment = document.getElementById('areasForDevelopment');
+
+            strengthsList.innerHTML = '';
+            areasForDevelopment.innerHTML = '';
+
+            const categoryNames = {
+                addition: '➕ Addition',
+                subtraction: '➖ Subtraktion',
+                multiplication: '✖️ Multiplikation',
+                division: '➗ Division',
+                comparison: '📊 Jämförelse',
+                fractions: '📏 Bråkdelar',
+                measurement: '📐 Mätning',
+                numbers: '🔢 Tal'
+            };
+
+            Object.entries(categoryResults).forEach(([category, result]) => {
+                const percentage = Math.round((result.correct / result.total) * 100);
+                const categoryName = categoryNames[category] || category;
+
+                if (percentage >= 75) {
+                    const li = document.createElement('li');
+                    li.className = 'p-3 bg-green-50 border-l-4 border-green-500 text-gray-800';
+                    li.innerHTML = `<strong>${categoryName}</strong> - ${percentage}% korrekt ✓`;
+                    strengthsList.appendChild(li);
+                } else if (percentage < 50) {
+                    const li = document.createElement('li');
+                    li.className = 'p-3 bg-yellow-50 border-l-4 border-yellow-500 text-gray-800';
+                    li.innerHTML = `<strong>${categoryName}</strong> - ${percentage}% korrekt (fokusera här!)`;
+                    areasForDevelopment.appendChild(li);
+                }
+            });
+        }
+
+        function renderRecommendations(categoryResults, level) {
+            const recommendationsList = document.getElementById('recommendations');
+            recommendationsList.innerHTML = '';
+
+            const recs = {
+                A: ['Börja med "Räkneräckor 1-10"', 'Träna "Tiobaser & Talkortspel"', 'Öva addition upp till 20'],
+                B: ['Fortsätt med "Multiplikationstabellen"', 'Träna "Blandade operationer"', 'Öva problemlösning'],
+                C: ['Verka med "Decimaltal"', 'Låt fokusera på "Bråkdelar"', 'Utforska "Mätningar"'],
+                D: ['Utmana med "Ekvationer"', 'Utforska "Logiska pussel"', 'Arbeta med "Mönster & Serier"']
+            };
+
+            (recs[level] || recs.A).forEach(rec => {
+                const li = document.createElement('li');
+                li.className = 'p-2 text-gray-700';
+                li.textContent = '• ' + rec;
+                recommendationsList.appendChild(li);
+            });
+        }
+
+        function downloadResults() {
+            const results = `
+Resultat från Matematisk Screening
+===================================
+Namn: ${screeningData.name}
+Årskurs: ${screeningData.grade}
+Datum: ${new Date().toLocaleDateString('sv-SE')}
+
+Poäng: ${screeningData.score}/${questions.length}
+Procent: ${Math.round((screeningData.score / questions.length) * 100)}%
+
+Resultaten kan nu integreras i ditt bedömningssystem.
+            `;
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
+            element.setAttribute('download', `screening_${screeningData.name}_${new Date().toISOString().split('T')[0]}.txt`);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function restartScreening() {
+            screeningData.answers = [];
+            screeningData.score = 0;
+            screeningData.currentQuestion = 0;
+
+            document.getElementById('resultsScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+
+            document.getElementById('studentName').value = '';
+            document.getElementById('gradeLevel').value = '';
+        }
+    </script>
+</body>
+</html>
