@@ -593,7 +593,7 @@
                 alert('Vikter kan inte vara negativa.');
                 return;
             }
-            if (high < 0 || medium > 100 || high >= medium) {
+            if (high < 0 || high > 100 || medium < 0 || medium > 100 || high >= medium) {
                 alert('Hög risk måste vara mindre än mellanrisk och inom 0-100.');
                 return;
             }
@@ -620,13 +620,17 @@
 
         function makePseudonymizedId(name, year) {
             const input = `${name.trim().toLowerCase()}|${String(year).trim()}`;
-            let hash = 2166136261;
+            let hash1 = 2166136261;
+            let hash2 = 5381;
             for (let i = 0; i < input.length; i++) {
-                hash ^= input.charCodeAt(i);
-                hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+                const code = input.charCodeAt(i);
+                hash1 ^= code;
+                hash1 += (hash1 << 1) + (hash1 << 4) + (hash1 << 7) + (hash1 << 8) + (hash1 << 24);
+                hash2 = ((hash2 << 5) + hash2) + code;
             }
-            const normalized = (hash >>> 0).toString(36).toUpperCase();
-            return `ELEV-${normalized.slice(0, 8)}`;
+            const h1 = (hash1 >>> 0).toString(36).toUpperCase();
+            const h2 = (hash2 >>> 0).toString(36).toUpperCase();
+            return `ELEV-${(h1 + h2).slice(0, 10)}`;
         }
 
         function parseDelimitedLine(line, delimiter) {
@@ -689,11 +693,17 @@
             });
 
             state.combinedStudents = Array.from(grouped.entries()).map(([studentId, records]) => {
+                const sortedRecords = records.slice().sort((a, b) => {
+                    if (a.date && b.date) return new Date(a.date) - new Date(b.date);
+                    if (a.date) return -1;
+                    if (b.date) return 1;
+                    return 0;
+                });
                 const totalWeight = records.reduce((acc, r) => acc + r.weight, 0);
                 const weightedSum = records.reduce((acc, r) => acc + (r.normalized * r.weight), 0);
                 const combined = totalWeight > 0 ? (weightedSum / totalWeight) * 100 : 0;
                 const trendPct = computeTrend(records);
-                const latestYear = records[records.length - 1].year;
+                const latestYear = sortedRecords[sortedRecords.length - 1]?.year || '';
                 const risk = riskLabel(combined);
                 return {
                     studentId,
@@ -702,12 +712,7 @@
                     combinedScore: Number(combined.toFixed(1)),
                     risk,
                     trendPct,
-                    assessments: records.slice().sort((a, b) => {
-                        if (a.date && b.date) return new Date(a.date) - new Date(b.date);
-                        if (a.date) return -1;
-                        if (b.date) return 1;
-                        return 0;
-                    })
+                    assessments: sortedRecords
                 };
             }).sort((a, b) => a.combinedScore - b.combinedScore);
         }
@@ -847,7 +852,7 @@
                 </div>
                 <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-6 mb-6">
                     <div class="text-4xl font-bold text-pink-600">${student.combinedScore}%</div>
-                    <div class="text-gray-600">Kombinerad screening (viktat standardiserad)</div>
+                    <div class="text-gray-600">Kombinerad screening (viktad standardiserad poäng)</div>
                 </div>
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
                     <p class="text-sm text-blue-900"><strong>Rekommendation:</strong> ${recommendation}</p>
