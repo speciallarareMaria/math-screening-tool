@@ -1,6 +1,6 @@
 # Screening Analys
 
-🎯 **Professionell analysverktyg för  2+ och 4+ screeningresultat**
+A**Analysverktyg för screeningresultat**
 
 En webbaserad lösning för lärare som vill analysera elevernas matematiska nivå, få personliga rapporter och klassöversikter.
 
@@ -16,7 +16,7 @@ En webbaserad lösning för lärare som vill analysera elevernas matematiska niv
 - ✅ **Sessionssparing**: Dina data sparas lokalt i webbläsaren
 - ✅ **Offline-funktion**: Fungerar helt utan internetanslutning
 
-## 🚀 Snabbstart
+## Snabbstart
 
 ### Metod 1: Använd HTML-filen direkt
 1. Ladda ner `index.html`
@@ -28,9 +28,9 @@ En webbaserad lösning för lärare som vill analysera elevernas matematiska niv
 
 ## 📝 Så använder du verktyget
 
-### Steg 1: Välj DiToM-version
+### Steg 1: Välj version
 - Gå till fliken **"Inställningar"**
-- Välj **DiToM 2+** eller **DiToM 4+**
+- Välj **2+** eller **4+**
 
 ### Steg 2: Justera gränsvärden (valfritt)
 - Standardgränsvärden är inställda enligt DiToM-riktlinjer
@@ -81,9 +81,9 @@ Maria	5	0.5	1	1	1	...	0.5	11
 - **Total poäng** räknas automatiskt
 - Använd **0**, **0.5** eller **1** för poäng
 
-## 🎯 Grupp A/B/C Klassificering
+##  Grupp A/B/C Klassificering
 
-**Standard DiToM-klassificering (kan justeras):**
+**Standard klassificering (kan justeras):**
 
 - **Grupp A** (Omfattande svårigheter): ≤5 poäng (DiToM 2+) / ≤5 poäng (DiToM 4+)
   - Elever som kan behöva omfattande stöd
