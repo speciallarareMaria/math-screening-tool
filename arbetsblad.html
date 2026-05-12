@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbetsbladsgenerator – Matematik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+        }
+        .button-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(236, 72, 153, 0.35);
+        }
+        .button-secondary {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button-secondary:hover {
+            transform: scale(1.02);
+        }
+        .worksheet-paper {
+            background: white;
+            width: 100%;
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm 16mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .answer-line {
+            display: inline-block;
+            min-width: 72px;
+            border-bottom: 2px solid #9ca3af;
+            height: 1.2em;
+            vertical-align: bottom;
+            margin: 0 4px;
+        }
+        .question-box {
+            break-inside: avoid;
+        }
+        @media print {
+            body {
+                background: white !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .worksheet-paper {
+                box-shadow: none;
+                max-width: none;
+                min-height: auto;
+                padding: 10mm;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <div class="gradient-bg text-white p-8 shadow-lg">
+            <div class="max-w-7xl mx-auto">
+                <h1 class="text-4xl font-bold mb-2">📄 Arbetsbladsgenerator</h1>
+                <p class="text-pink-100">Skapa utskriftsvänliga matematikblad med fokus på taluppfattning</p>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto p-6">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Controls -->
+                <div class="xl:col-span-1 no-print">
+                    <div class="bg-white rounded-xl shadow-lg p-6 sticky top-6">
+                        <h2 class="text-2xl font-bold mb-6">⚙️ Inställningar</h2>
+
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Årskurs</label>
+                                <select id="grade" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                                    <option value="1">Åk 1</option>
+                                    <option value="2" selected>Åk 2</option>
+                                    <option value="3">Åk 3</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Termin</label>
+                                <select id="term" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                                    <option value="HT" selected>HT</option>
+                                    <option value="VT">VT</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Område</label>
+                                <select id="area" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                                    <option value="taluppfattning" selected>Taluppfattning</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Typ av arbetsblad</label>
+                                <select id="worksheetType" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                                    <option value="bedomning" selected>Bedömning</option>
+                                    <option value="traning">Träning</option>
+                                    <option value="blandat">Blandat</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Antal uppgifter</label>
+                                <select id="questionCount" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                                    <option value="6">6</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="12">12</option>
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Svårighetsnivå</label>
+                                <select id="difficulty" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                                    <option value="enkel">Enkel</option>
+                                    <option value="blandad" selected>Blandad</option>
+                                    <option value="utmanande">Utmanande</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Titel på arbetsblad</label>
+                                <input id="titleInput" type="text" value="Taluppfattning – Åk 2 HT"
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none">
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <input id="includeAnswerKey" type="checkbox" checked class="w-5 h-5 accent-pink-600">
+                                <label for="includeAnswerKey" class="text-sm font-semibold">Skapa facit</label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
+                            <button onclick="generateWorksheet()" class="button-primary px-4 py-3 text-white font-bold rounded-lg">
+                                ✨ Generera
+                            </button>
+                            <button onclick="shuffleWorksheet()" class="button-secondary px-4 py-3 bg-purple-100 text-purple-800 font-bold rounded-lg hover:bg-purple-200">
+                                🔀 Slumpa nytt
+                            </button>
+                            <button onclick="downloadWorksheetPDF()" id="downloadWorksheetBtn" disabled
+                                class="px-4 py-3 bg-gray-200 text-gray-500 font-bold rounded-lg cursor-not-allowed">
+                                📄 Ladda ner blad
+                            </button>
+                            <button onclick="downloadAnswerKeyPDF()" id="downloadAnswerKeyBtn" disabled
+                                class="px-4 py-3 bg-gray-200 text-gray-500 font-bold rounded-lg cursor-not-allowed">
+                                ✅ Ladda ner facit
+                            </button>
+                        </div>
+
+                        <button onclick="clearWorksheet()" class="w-full mt-3 px-4 py-3 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200">
+                            🗑️ Rensa
+                        </button>
+
+                        <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                            <h3 class="font-bold text-blue-900 mb-2">💡 Första versionen</h3>
+                            <p class="text-sm text-blue-800">
+                                Denna version fokuserar på taluppfattning och genererar utskriftsvänliga arbetsblad med facit.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="xl:col-span-2 space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4">Förhandsgranskning – Arbetsblad</h2>
+                        <div id="worksheetPreviewContainer" class="bg-gray-100 rounded-xl p-4 min-h-[300px]">
+                            <div class="text-center text-gray-500 py-20">
+                                Generera ett arbetsblad för att se förhandsgranskningen här.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4">Förhandsgranskning – Facit</h2>
+                        <div id="answerKeyPreviewContainer" class="bg-gray-100 rounded-xl p-4 min-h-[200px]">
+                            <div class="text-center text-gray-500 py-16">
+                                Facit visas här om du väljer att skapa facit.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            worksheet: null,
+            answerKey: null
+        };
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(arr) {
+            const clone = [...arr];
+            for (let i = clone.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [clone[i], clone[j]] = [clone[j], clone[i]];
+            }
+            return clone;
+        }
+
+        function getSettings() {
+            const grade = document.getElementById('grade').value;
+            const term = document.getElementById('term').value;
+            const area = document.getElementById('area').value;
+            const worksheetType = document.getElementById('worksheetType').value;
+            const questionCount = parseInt(document.getElementById('questionCount').value, 10);
+            const difficulty = document.getElementById('difficulty').value;
+            const includeAnswerKey = document.getElementById('includeAnswerKey').checked;
+            const title = document.getElementById('titleInput').value.trim() || `Taluppfattning – Åk ${grade} ${term}`;
+
+            return {
+                grade,
+                term,
+                area,
+                worksheetType,
+                questionCount,
+                difficulty,
+                includeAnswerKey,
+                title
+            };
+        }
+
+        function getNumberRange(grade, difficulty) {
+            const config = {
+                "1": {
+                    enkel: [0, 20],
+                    blandad: [0, 30],
+                    utmanande: [0, 50]
+                },
+                "2": {
+                    enkel: [0, 50],
+                    blandad: [0, 100],
+                    utmanande: [0, 200]
+                },
+                "3": {
+                    enkel: [0, 100],
+                    blandad: [0, 500],
+                    utmanande: [0, 1000]
+                }
+            };
+            return config[grade][difficulty];
+        }
+
+        function generateBeforeAfter(settings) {
+            const [min, max] = getNumberRange(settings.grade, settings.difficulty);
+            let n = randomInt(Math.max(min + 1, 1), Math.max(min + 2, max - 1));
+            const askBefore = Math.random() < 0.5;
+
+            return askBefore
+                ? {
+                    type: 'before-after',
+                    prompt: `Vilket tal kommer före ${n}?`,
+                    displayAnswer: `${n - 1}`
+                }
+                : {
+                    type: 'before-after',
+                    prompt: `Vilket tal kommer efter ${n}?`,
+                    displayAnswer: `${n + 1}`
+                };
+        }
+
+        function generateGreatestLeast(settings) {
+            const [min, max] = getNumberRange(settings.grade, settings.difficulty);
+            let numbers = new Set();
+
+            while (numbers.size < 3) {
+                numbers.add(randomInt(min, max));
+            }
+
+            numbers = [...numbers];
+            const askGreatest = Math.random() < 0.5;
+            const answer = askGreatest ? Math.max(...numbers) : Math.min(...numbers);
+
+            return {
+                type: 'greatest-least',
+                prompt: `${askGreatest ? 'Vilket tal är störst' : 'Vilket tal är minst'}: ${shuffleArray(numbers).join(', ')}?`,
+                displayAnswer: `${answer}`
+            };
+        }
+
+        function generateSequence(settings) {
+            const [min, max] = getNumberRange(settings.grade, settings.difficulty);
+            const stepOptions = settings.grade === "1" ? [1, 2] : settings.grade === "2" ? [1, 2, 5, 10] : [1, 2, 5, 10, 20, 50];
+            const step = stepOptions[randomInt(0, stepOptions.length - 1)];
+
+            let start = randomInt(min, Math.max(min, max - step * 4));
+            const seq = [start, start + step, start + step * 2];
+
+            return {
+                type: 'sequence',
+                prompt: `Fortsätt talföljden: ${seq[0]}, ${seq[1]}, ${seq[2]}, __, __`,
+                displayAnswer: `${seq[2] + step}, ${seq[2] + step * 2}`
+            };
+        }
+
+        function generatePartPartWhole(settings) {
+            const upper = settings.grade === "1" ? 10 : settings.grade === "2" ? 20 : 50;
+            const total = randomInt(4, upper);
+            const a = randomInt(1, total - 1);
+            const b = total - a;
+
+            return {
+                type: 'part-part-whole',
+                prompt: `Dela upp talet ${total} i två delar: __ + __ = ${total}`,
+                displayAnswer: `${a} + ${b} = ${total}`
+            };
+        }
+
+        function generateComparison(settings) {
+            const [min, max] = getNumberRange(settings.grade, settings.difficulty);
+            const a = randomInt(min, max);
+            const b = randomInt(min, max);
+            const symbol = a > b ? '>' : a < b ? '<' : '=';
+
+            return {
+                type: 'comparison',
+                prompt: `Sätt in rätt tecken: ${a} __ ${b}`,
+                displayAnswer: `${a} ${symbol} ${b}`
+            };
+        }
+
+        function buildQuestionPool(settings) {
+            return [
+                () => generateBeforeAfter(settings),
+                () => generateGreatestLeast(settings),
+                () => generateSequence(settings),
+                () => generatePartPartWhole(settings),
+                () => generateComparison(settings)
+            ];
+        }
+
+        function generateQuestions(settings) {
+            const pool = buildQuestionPool(settings);
+            const questions = [];
+
+            for (let i = 0; i < settings.questionCount; i++) {
+                const generator = pool[i % pool.length];
+                questions.push(generator());
+            }
+
+            return shuffleArray(questions).map((q, index) => ({
+                ...q,
+                number: index + 1
+            }));
+        }
+
+        function renderWorksheet(settings, questions) {
+            return `
+                <div id="worksheetPaper" class="worksheet-paper rounded-lg">
+                    <div class="mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">${escapeHtml(settings.title)}</h1>
+                        <p class="text-gray-600">Område: Taluppfattning • Åk ${escapeHtml(settings.grade)} • ${escapeHtml(settings.term)} • ${capitalize(settings.worksheetType)}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 mb-8 text-sm">
+                        <div>
+                            <span class="font-semibold">Namn:</span>
+                            <span class="inline-block border-b-2 border-gray-400 w-48 ml-2">&nbsp;</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Datum:</span>
+                            <span class="inline-block border-b-2 border-gray-400 w-40 ml-2">&nbsp;</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-8 p-4 bg-pink-50 rounded-lg border-l-4 border-pink-500">
+                        <p class="text-sm text-gray-700">
+                            <span class="font-bold">Instruktion:</span>
+                            Läs varje uppgift noggrant och skriv ditt svar tydligt.
+                        </p>
+                    </div>
+
+                    <div class="space-y-6">
+                        ${questions.map(q => `
+                            <div class="question-box border border-gray-200 rounded-lg p-4">
+                                <div class="font-bold text-gray-800 mb-2">${q.number}. ${escapeHtml(q.prompt)}</div>
+                                <div class="mt-4">
+                                    <span class="answer-line"></span>
+                                    <span class="answer-line"></span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="mt-10 pt-4 border-t text-xs text-gray-500">
+                        Genererat arbetsblad • Matematik • Taluppfattning
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAnswerKey(settings, questions) {
+            return `
+                <div id="answerKeyPaper" class="worksheet-paper rounded-lg">
+                    <div class="mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Facit – ${escapeHtml(settings.title)}</h1>
+                        <p class="text-gray-600">Område: Taluppfattning • Åk ${escapeHtml(settings.grade)} • ${escapeHtml(settings.term)}</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        ${questions.map(q => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="font-bold text-gray-800">${q.number}. ${escapeHtml(q.prompt)}</div>
+                                <div class="mt-2 text-green-700 font-semibold">Svar: ${escapeHtml(q.displayAnswer)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="mt-10 pt-4 border-t text-xs text-gray-500">
+                        Genererat facit • Matematik • Taluppfattning
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateWorksheet() {
+            const settings = getSettings();
+            const questions = generateQuestions(settings);
+
+            state.worksheet = {
+                settings,
+                questions
+            };
+
+            document.getElementById('worksheetPreviewContainer').innerHTML = renderWorksheet(settings, questions);
+
+            if (settings.includeAnswerKey) {
+                state.answerKey = {
+                    settings,
+                    questions
+                };
+                document.getElementById('answerKeyPreviewContainer').innerHTML = renderAnswerKey(settings, questions);
+            } else {
+                state.answerKey = null;
+                document.getElementById('answerKeyPreviewContainer').innerHTML = `
+                    <div class="text-center text-gray-500 py-16">
+                        Facit är inte valt för detta arbetsblad.
+                    </div>
+                `;
+            }
+
+            enableButtons(settings.includeAnswerKey);
+
+            document.getElementById('worksheetPreviewContainer').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        function shuffleWorksheet() {
+            if (!state.worksheet) {
+                generateWorksheet();
+                return;
+            }
+            generateWorksheet();
+        }
+
+        function clearWorksheet() {
+            state.worksheet = null;
+            state.answerKey = null;
+
+            document.getElementById('worksheetPreviewContainer').innerHTML = `
+                <div class="text-center text-gray-500 py-20">
+                    Generera ett arbetsblad för att se förhandsgranskningen här.
+                </div>
+            `;
+            document.getElementById('answerKeyPreviewContainer').innerHTML = `
+                <div class="text-center text-gray-500 py-16">
+                    Facit visas här om du väljer att skapa facit.
+                </div>
+            `;
+
+            disableButtons();
+        }
+
+        function enableButtons(includeAnswerKey) {
+            const worksheetBtn = document.getElementById('downloadWorksheetBtn');
+            worksheetBtn.disabled = false;
+            worksheetBtn.className = 'button-primary px-4 py-3 text-white font-bold rounded-lg';
+
+            const answerBtn = document.getElementById('downloadAnswerKeyBtn');
+            if (includeAnswerKey) {
+                answerBtn.disabled = false;
+                answerBtn.className = 'button-primary px-4 py-3 text-white font-bold rounded-lg';
+            } else {
+                answerBtn.disabled = true;
+                answerBtn.className = 'px-4 py-3 bg-gray-200 text-gray-500 font-bold rounded-lg cursor-not-allowed';
+            }
+        }
+
+        function disableButtons() {
+            const worksheetBtn = document.getElementById('downloadWorksheetBtn');
+            worksheetBtn.disabled = true;
+            worksheetBtn.className = 'px-4 py-3 bg-gray-200 text-gray-500 font-bold rounded-lg cursor-not-allowed';
+
+            const answerBtn = document.getElementById('downloadAnswerKeyBtn');
+            answerBtn.disabled = true;
+            answerBtn.className = 'px-4 py-3 bg-gray-200 text-gray-500 font-bold rounded-lg cursor-not-allowed';
+        }
+
+        function downloadWorksheetPDF() {
+            if (!state.worksheet) return;
+
+            const element = document.getElementById('worksheetPaper');
+            const filename = buildFilename(state.worksheet.settings.title, false);
+
+            html2pdf().set({
+                margin: 8,
+                filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            }).from(element).save();
+        }
+
+        function downloadAnswerKeyPDF() {
+            if (!state.answerKey) return;
+
+            const element = document.getElementById('answerKeyPaper');
+            const filename = buildFilename(state.answerKey.settings.title, true);
+
+            html2pdf().set({
+                margin: 8,
+                filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            }).from(element).save();
+        }
+
+        function buildFilename(title, isAnswerKey) {
+            const today = new Date().toISOString().split('T')[0];
+            const safeTitle = title
+                .replace(/\s+/g, '_')
+                .replace(/[^a-zA-Z0-9åäöÅÄÖ_-]/g, '');
+            return isAnswerKey
+                ? `${safeTitle}_Facit_${today}.pdf`
+                : `${safeTitle}_${today}.pdf`;
+        }
+
+        function capitalize(value) {
+            if (!value) return '';
+            return value.charAt(0).toUpperCase() + value.slice(1);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function syncSuggestedTitle() {
+            const grade = document.getElementById('grade').value;
+            const term = document.getElementById('term').value;
+            const area = document.getElementById('area').value;
+
+            const areaLabel = area === 'taluppfattning' ? 'Taluppfattning' : 'Matematik';
+            document.getElementById('titleInput').value = `${areaLabel} – Åk ${grade} ${term}`;
+        }
+
+        document.getElementById('grade').addEventListener('change', syncSuggestedTitle);
+        document.getElementById('term').addEventListener('change', syncSuggestedTitle);
+        document.getElementById('area').addEventListener('change', syncSuggestedTitle);
+
+        disableButtons();
+    </script>
+</body>
+</html>
